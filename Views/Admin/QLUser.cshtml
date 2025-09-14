@@ -1,0 +1,452 @@
+﻿@model IEnumerable<KhachHang>
+@await Html.PartialAsync("header")
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý khách hàng</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            background-color: #d0e4f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .search-container {
+            max-width: 500px; /* Chiều rộng tối đa */
+            margin: 0 auto 30px auto; /* Căn giữa và khoảng cách dưới */
+            position: relative; /* Để có thể định vị các element con */
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            font-size: 16px;
+            border: 2px solid #e0e6ed;
+            border-radius: 25px;
+            outline: none; /* Loại bỏ outline mặc định */
+            transition: all 0.3s ease; /* Hiệu ứng chuyển đổi */
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+            .search-box:focus {
+                border-color: #3498db;
+                box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+            }
+
+        .search-icon {
+            position: absolute; /* Định vị tuyệt đối */
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%); /* Dịch chuyển lên trên 50% để căn giữa */
+            color: #7f8c8d;
+            font-size: 18px;
+            pointer-events: none; /* Không thể click vào icon */
+        }
+
+        .clear-search {
+            position: absolute; /* Định vị tuyệt đối */
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #95a5a6;
+            font-size: 18px;
+            cursor: pointer;
+            display: none; /* Ẩn mặc định */
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            line-height: 1; /* Độ cao dòng */
+        }
+
+            /* Hiệu ứng hover cho nút xóa */
+            .clear-search:hover {
+                color: #e74c3c;
+            }
+
+        .no-results {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Gộp viền các ô */
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            color: #333;
+        }
+
+        thead {
+            background-color: #f0f6fb;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none; /* Không có gạch chân */
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+            .btn-danger:hover {
+                background-color: #c0392b;
+            }
+
+        .modal {
+            display: none; /* Ẩn mặc định */
+            position: fixed; /* Định vị cố định */
+            z-index: 1050; /* Layer cao nhất */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-dialog {
+            position: relative; /* Định vị tương đối */
+            margin: 10% auto;
+            max-width: 500px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between; /* Phân bố đều 2 đầu */
+            align-items: center; /* Căn giữa theo chiều dọc */
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex; /* Sử dụng flexbox */
+            justify-content: flex-end; /* Căn về phía phải */
+            gap: 10px; /* Khoảng cách giữa các phần tử */
+        }
+
+        .btn-close {
+            background: none;
+            border: none; /* Không có viền */
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block'; // Hiển thị modal
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Hàm tìm kiếm khách hàng
+        function searchCustomers() {
+            // Lấy giá trị tìm kiếm, chuyển về chữ thường và loại bỏ khoảng trắng
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Lấy tất cả các dòng trong tbody của table
+            const tableRows = document.querySelectorAll('tbody tr');
+
+             // Lấy nút xóa tìm kiếm
+            const clearButton = document.querySelector('.clear-search');
+
+            // Lấy div thông báo không có kết quả
+            const noResultsDiv = document.getElementById('noResults');
+
+            // Biến đếm số dòng hiển thị
+            let visibleCount = 0;
+
+             // Hiển thị/ẩn nút xóa tìm kiếm
+            if (searchTerm) {
+                clearButton.style.display = 'block'; // Hiển thị nút xóa nếu có text tìm kiếm
+            } else {
+                clearButton.style.display = 'none'; // Ẩn nút xóa nếu không có text
+            }
+
+            // Duyệt qua từng dòng trong bảng
+            tableRows.forEach(row => {
+                // Lấy tên khách hàng từ cột thứ 3 (index 2), chuyển về chữ thường
+                const customerName = row.cells[2].textContent.toLowerCase(); // Cột họ tên
+
+                // Kiểm tra xem tên có chứa từ khóa tìm kiếm không
+                const isVisible = customerName.includes(searchTerm);
+
+                if (isVisible) {
+                    row.style.display = ''; // Hiển thị dòng
+                    visibleCount++; // Tăng số lượng dòng hiển thị
+
+                    // Highlight text tìm kiếm
+                    if (searchTerm) {
+                        const nameCell = row.cells[2]; // Lấy ô chứa tên
+                        const originalText = nameCell.textContent; // Lấy text gốc
+
+                        // Thay thế text khớp với từ khóa bằng HTML có class highlight
+                        const highlightedText = originalText.replace(
+                            new RegExp(searchTerm, 'gi'), // Regex không phân biệt hoa thường
+                            match => `<span class="highlight">${match}</span>`
+                        );
+                        nameCell.innerHTML = highlightedText; // Gán HTML mới
+                    } else {
+                        // Xóa highlight khi không có từ khóa tìm kiếm
+                        const nameCell = row.cells[2];
+                        nameCell.innerHTML = nameCell.textContent; // Chỉ giữ lại text thuần
+                    }
+                } else {
+                    row.style.display = 'none'; // Ẩn dòng không khớp
+                }
+            });
+
+            // Hiển thị/ẩn thông báo không tìm thấy kết quả
+            if (visibleCount === 0 && searchTerm) {
+                // Nếu không có kết quả và có từ khóa tìm kiếm
+                if (!noResultsDiv) {
+                    // Tạo div thông báo mới nếu chưa có
+                    const noResults = document.createElement('div');
+                    noResults.id = 'noResults';
+                    noResults.className = 'no-results';
+                    noResults.innerHTML = `
+                        <h3>Không tìm thấy kết quả</h3>
+                        <p>Không có khách hàng nào có tên chứa "<strong>${searchTerm}</strong>"</p>
+                    `;
+                    // Chèn div sau bảng
+                    document.querySelector('table').parentNode.insertBefore(noResults, document.querySelector('table').nextSibling);
+                } else {
+                     // Cập nhật nội dung div đã có
+                    noResultsDiv.innerHTML = `
+                        <h3>Không tìm thấy kết quả</h3>
+                        <p>Không có khách hàng nào có tên chứa "<strong>${searchTerm}</strong>"</p>
+                    `;
+                    noResultsDiv.style.display = 'block'; // Hiển thị div
+                }
+            } else if (noResultsDiv) {
+                 // Ẩn thông báo nếu có kết quả hoặc không có từ khóa
+                noResultsDiv.style.display = 'none';
+            }
+        }
+
+        // Hàm xóa tìm kiếm
+        function clearSearch() {
+            document.getElementById('searchInput').value = ''; // Xóa nội dung ô tìm kiếm
+            searchCustomers(); // Gọi lại hàm tìm kiếm để reset hiển thị
+        }
+
+        // Thêm event listener khi trang được tải xong
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput'); // Lấy ô input tìm kiếm
+
+            // Lắng nghe sự kiện input (khi người dùng gõ)
+            searchInput.addEventListener('input', searchCustomers);
+
+            // Lắng nghe sự kiện keyup (khi người dùng nhả phím)
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Escape') { // Nếu nhấn phím Escape
+                    clearSearch(); // Xóa tìm kiếm
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <h1>Quản lý khách hàng</h1>
+
+    <!-- Tìm kiếm -->
+    <div class="search-container">
+        <input type="text"
+               id="searchInput"
+               class="search-box"
+               placeholder="Tìm kiếm khách hàng theo tên..."
+               autocomplete="off">
+        <!-- Nút xóa tìm kiếm-->
+        <button class="clear-search" onclick="clearSearch()" title="Xóa tìm kiếm">×</button>
+        <span class="search-icon">🔍</span>
+    </div>
+
+    <!-- Danh sách khách hàng-->
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Person ID</th>
+                <th>Họ tên</th>
+                <th>Tuổi</th>
+                <th>Giới tính</th>
+                <th>SDT</th>
+                <th>Chỉnh sửa</th>
+                <th>Xóa</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+                // Vòng lặp đầu tiên để tạo các ID modal (có thể không cần thiết)
+                foreach (var khachhang in Model)
+                {
+                    var modalEditId = "edit_" + khachhang.KhachHangId;
+                    var modalDeleteId = "delete_" + khachhang.KhachHangId;
+                }
+            }
+
+            <!-- Vòng lặp chính để hiển thị từng khách hàng-->
+            @foreach (var khachhang in Model)
+            {
+                // Tạo ID unique cho modal edit và delete của từng khách hàng
+                var modalEditId = "edit_" + khachhang.KhachHangId;
+                var modalDeleteId = "delete_" + khachhang.KhachHangId;
+                <tr>
+                    <td>@(i++)</td>
+                    <td>@khachhang.KhachHangNavigation.PersonId</td>
+                    <td>@khachhang.KhachHangNavigation.HoTen</td>
+                    <td>@khachhang.KhachHangNavigation.Tuoi</td>
+                    <td>@(khachhang.KhachHangNavigation.GioiTinh == 0 ? "Nam" : "Nữ")</td>
+                    <td>@khachhang.KhachHangNavigation.Sdt</td>
+                    <td>
+
+                        @* Nút mở modal chỉnh sửa *@
+                        <button class="btn btn-primary" onclick="openModal('@modalEditId')">Sửa</button>
+                        @* Modal chỉnh sửa thông tin khách hàng *@
+                        <div class="modal" id="@modalEditId">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span>Chỉnh sửa thông tin khách hàng</span>
+                                        <button class="btn-close" onclick="closeModal('@modalEditId')">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @* Form gửi dữ liệu về action updateThongTinKhachHang *@
+                                        <form method="post" asp-action="updateThongTinKhachHang">
+                                            <label>Person ID</label>
+                                            <input name="personid" value="@khachhang.KhachHangNavigation.PersonId" />
+
+                                            <label>Họ tên</label>
+                                            <input name="hoten" value="@khachhang.KhachHangNavigation.HoTen" />
+
+                                            <label>Tuổi</label>
+                                            <input type="number" name="tuoi" value="@khachhang.KhachHangNavigation.Tuoi" />
+
+                                            <label>Giới tính</label>
+                                            <select name="gioitinh">
+                                                <option value="0" selected="@(khachhang.KhachHangNavigation.GioiTinh == 0)">Nam</option>
+                                                <option value="1" selected="@(khachhang.KhachHangNavigation.GioiTinh == 1)">Nữ</option>
+                                                <option value="2" selected="@(khachhang.KhachHangNavigation.GioiTinh == 2)">Khác</option>
+                                            </select>
+
+                                            <label>SĐT</label>
+                                            <input name="sdt" value="@khachhang.KhachHangNavigation.Sdt" />
+
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-danger">Xác nhận</button>
+                                                <button type="button" class="btn btn-primary" onclick="closeModal('@modalEditId')">Hủy</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        @* Nút mở modal xác nhận xóa *@
+                        <button class="btn btn-danger" onclick="openModal('@modalDeleteId')">Xóa</button>
+                        @* Modal xác nhận xóa khách hàng *@
+                        <div class="modal" id="@modalDeleteId">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span>Xóa khách hàng</span>
+                                        <button class="btn-close" onclick="closeModal('@modalDeleteId')">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bạn có muốn xóa khách hàng không?
+                                    </div>
+                                    <div class="modal-footer">
+                                        @* Link xác nhận xóa, gọi action xoaKhachHang với parameter *@
+                                        <a class="btn btn-danger" asp-action="xoaKhachHang" asp-route-personid="@khachhang.KhachHangId">Xác nhận</a>
+                                        @* Nút hủy, đóng modal *@
+                                        <button class="btn btn-primary" onclick="closeModal('@modalDeleteId')">Hủy</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</body>
+</html>

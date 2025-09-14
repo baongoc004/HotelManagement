@@ -1,0 +1,242 @@
+﻿@model TaiKhoan
+@await Html.PartialAsync("header")
+
+<div class="homepage-container">
+    <section class="hero-section">
+        <div class="carousel" id="carousel">
+            <div class="carousel-inner" id="carouselInner">
+                <div class="carousel-item">
+                    @* Hình ảnh slide 1 - sử dụng Url.Content để tạo đường dẫn tương đối *@
+                    <img class="carousel-image" src="@Url.Content("~/pictures/bgk2.jpg")" alt="Slide 1">
+                </div>
+                <div class="carousel-item">
+                    <img class="carousel-image" src="@Url.Content("~/pictures/bgk4.jpg")" alt="Slide 2">
+                </div>
+                <div class="carousel-item">
+                    <img class="carousel-image" src="@Url.Content("~/pictures/bgk1.jpg")" alt="Slide 3">
+                </div>
+                <div class="carousel-item">
+                    <img class="carousel-image" src="@Url.Content("~/pictures/bgk3.jpg")" alt="Slide 4">
+                </div>
+            </div>
+
+            <div class="carousel-buttons">
+                @* Nút "Previous" - gọi hàm moveSlide với tham số -1 để lùi 1 slide *@
+                <button class="carousel-button" onclick="moveSlide(-1)">❮</button>
+
+                @* Nút "Next" - gọi hàm moveSlide với tham số 1 để tiến 1 slide *@
+                <button class="carousel-button" onclick="moveSlide(1)">❯</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="carousel-indicators" id="carouselIndicators">
+        @* Chấm chỉ thị slide 1 - active mặc định, gọi hàm goToSlide(0) *@
+        <button onclick="goToSlide(0)" class="active"></button>
+        <button onclick="goToSlide(1)"></button>
+        <button onclick="goToSlide(2)"></button>
+        <button onclick="goToSlide(3)"></button>
+    </div>
+
+    @await Html.PartialAsync("footer")
+</div>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #e6f7ff;
+    }
+
+    .homepage-container {
+        display: flex;
+    @* Sắp xếp các element theo chiều dọc *@
+        flex-direction: column;
+    @* Chiều cao tối thiểu bằng 100% viewport height *@
+        min-height: 100vh;
+    }
+
+    .hero-section {
+    @* Cho phép section này mở rộng để chiếm không gian còn lại *@
+        flex-grow: 1;
+        display: flex;
+    @* Căn giữa theo chiều dọc *@
+        align-items: center;
+    @* Căn giữa theo chiều ngang *@
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .carousel {
+    @* Vị trí tương đối để có thể đặt các element con với position absolute *@
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        height: 450px; /* Đặt chiều cao cố định */
+        overflow: hidden; /* Ẩn phần tràn*/
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        background-color: white;
+        margin: auto;
+    }
+
+    .carousel-inner {
+        display: flex;
+        width: calc(100% * 4); /* 4 slides */
+        height: 100%; /* Chiều cao 100% của carousel */
+        transition: transform 0.5s ease-in-out;
+    }
+
+    .carousel-item {
+        flex: 0 0 25%; /* Mỗi item chiếm 25% width */
+        height: 100%; /* Chiều cao 100% của carousel-inner */
+        display: flex;
+        align-items: center; /* Căn giữa các phần tử theo chiều ngang*/
+    @* Căn giữa hình ảnh theo chiều ngang *@
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .carousel-image {
+        width: 100%; 
+        height: 100%;
+        object-fit: cover; /* Thay đổi từ contain thành cover */
+        object-position: center; /* Căn giữa hình ảnh */
+        display: block; /* Hiển thị dạng block element*/
+    }
+
+    /* Responsive cho mobile */
+    @* Media query cho thiết bị di động *@
+    @@media (max-width: 768px) {
+        .carousel
+
+    {
+        height: 300px;
+        max-width: 100%;
+        margin: 10px;
+    }
+
+    .hero-section {
+        padding: 10px;
+    }
+
+    }
+
+    /* Responsive cho tablet */
+    @* Media query cho thiết bị tablet *@
+    @@media (min-width: 769px) and (max-width: 1024px) {
+        .carousel
+
+    {
+        height: 400px;
+    }
+
+    }
+
+    .carousel-buttons {
+    @* Vị trí tuyệt đối so với carousel container *@
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+    @* Đặt các nút ở hai đầu *@
+        justify-content: space-between;
+    @* Dịch chuyển lên 50% để căn giữa thực sự *@
+        transform: translateY(-50%);
+        padding: 0 20px;
+    @* Đặt lên trên hình ảnh *@
+        z-index: 1;
+    }
+
+    .carousel-button {
+        background-color: rgba(255, 255, 255, 0.7);
+        border: none;
+        font-size: 24px;
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+    @* Hiệu ứng chuyển màu nền *@
+        transition: background 0.3s;
+    }
+
+        .carousel-button:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+    .carousel-indicators {
+        text-align: center;
+        margin: 12px 0;
+    }
+
+        .carousel-indicators button {
+            width: 12px;
+            height: 12px;
+            margin: 0 5px;
+            border-radius: 50%;
+            border: none;
+            background-color: #bbb;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .carousel-indicators button.active,
+            .carousel-indicators button:hover {
+                background-color: #333;
+            }
+
+    footer {
+        padding: 10px;
+        background-color: #eceff1;
+        font-size: 14px;
+        display: flex;
+    @* Căn giữa theo chiều ngang *@
+        justify-content: center;
+    @* Căn giữa theo chiều dọc *@
+        align-items: center;
+        text-align: center;
+    }
+</style>
+
+<script>
+    let currentSlide = 0; /* Biến lưu trữ chỉ số slide hiện tại, bắt đầu từ 0 */
+    const totalSlides = 4; /* Hằng số tổng số slide */
+
+    /* Hàm cập nhật hiển thị carousel */
+    function updateCarousel() {
+    @* Lấy element carousel-inner bằng ID *@
+        const inner = document.getElementById("carouselInner");
+    @* Dịch chuyển carousel theo trục X, mỗi slide dịch 25% *@
+        inner.style.transform = `translateX(-${currentSlide * 25}%)`;
+
+    @* Lấy tất cả các nút chỉ thị *@
+        const indicators = document.querySelectorAll(".carousel-indicators button");
+    @* Lặp qua từng nút chỉ thị *@
+        indicators.forEach((btn, idx) => {
+    @* Thêm/xóa class "active" dựa trên slide hiện tại *@
+            btn.classList.toggle("active", idx === currentSlide);
+        });
+    }
+
+    @* Hàm di chuyển slide theo hướng (1: tiến, -1: lùi) *@
+    function moveSlide(direction) {
+    @* Tính chỉ số slide mới, sử dụng modulo để tạo vòng lặp vô hạn *@
+        currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+        updateCarousel(); /* Gọi hàm cập nhật hiển thị*/
+    }
+
+    @* Hàm chuyển đến slide cụ thể theo chỉ số *@
+    function goToSlide(index) {
+        currentSlide = index; /* Cập nhật chỉ số slide hiện tại */
+        updateCarousel();
+    }
+
+    // Tự động chuyển slide mỗi 3s
+    setInterval(() => moveSlide(1), 3000);
+
+    // Khởi tạo slide đầu tiên
+    document.addEventListener("DOMContentLoaded", updateCarousel);
+</script>

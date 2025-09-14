@@ -1,0 +1,371 @@
+﻿@model IEnumerable<HoaDon>
+@await Html.PartialAsync("header")
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách hóa đơn</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            background-color: #d0e4f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* Phần thống kê */
+        .statistics-section {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .statistics-title {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+            .form-group label {
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 5px;
+            }
+
+            .form-group input {
+                padding: 8px 12px;
+                border: 2px solid #bdc3c7;
+                border-radius: 6px;
+                font-size: 1rem;
+                transition: border-color 0.3s ease;
+            }
+
+                .form-group input:focus {
+                    outline: none;
+                    border-color: #3498db;
+                }
+
+        .btn-filter {
+            background-color: #27ae60;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+            .btn-filter:hover {
+                background-color: #219a52;
+            }
+
+        .statistics-result {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+            .stat-card.revenue {
+                border-left-color: #27ae60;
+            }
+
+            .stat-card.count {
+                border-left-color: #e74c3c;
+            }
+
+            .stat-card.average {
+                border-left-color: #f39c12;
+            }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            /* Gộp border của các ô lại với nhau */
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            /* Ẩn phần tràn để giữ bo góc */
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            color: #333;
+        }
+
+        thead {
+            background-color: #f0f6fb;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 6px;
+            /* Con trở chuột thành pointer khi hover */
+            cursor: pointer;
+            /* Loại bỏ gạch chân link */
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+            .btn-danger:hover {
+                background-color: #c0392b;
+            }
+
+        .modal {
+            /* Ẩn modal mặc định */
+            display: none;
+            /* Vị trí cố định so với viewport */
+            position: fixed;
+            /* Độ ưu tiên hiển thị cao */
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            /* Cho phép cuộn nếu cần */
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-dialog {
+            position: relative;
+            margin: 10% auto;
+            max-width: 400px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            /* Sử dụng flexbox */
+            display: flex;
+            /* Đẩy các phần tử ra hai đầu */
+            justify-content: space-between;
+            /* Căn giữa theo chiều dọc */
+            align-items: center;
+            font-weight: bold;
+            /* Khoảng cách dưới header */
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            /* Căn các nút về bên phải */
+            justify-content: flex-end;
+            /* Khoảng cách giữa các nút */
+            gap: 10px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .filter-form
+
+        {
+            flex-direction: column;
+        }
+
+        .statistics-result {
+            grid-template-columns: 1fr;
+        }
+
+        }</style>
+</head>
+<body>
+
+    <h1>Danh sách các hóa đơn</h1>
+
+    <!-- Phần thống kê -->
+    <div class="statistics-section">
+        <h2 class="statistics-title">Thống kê doanh thu</h2>
+
+        <form class="filter-form" asp-action="QLHoaDon" method="get">
+            <div class="form-group">
+                <label for="tuNgay">Từ ngày:</label>
+                <input type="date" id="tuNgay" name="tuNgay" value="@ViewBag.TuNgay" />
+            </div>
+
+            <div class="form-group">
+                <label for="denNgay">Đến ngày:</label>
+                <input type="date" id="denNgay" name="denNgay" value="@ViewBag.DenNgay" />
+            </div>
+
+            <button type="submit" class="btn-filter">Lọc thống kê</button>
+        </form>
+
+        @if (ViewBag.TuNgay != null && ViewBag.DenNgay != null)
+        {
+            <div class="statistics-result">
+                <div class="stat-card revenue">
+                    <div class="stat-number">@String.Format("{0:N0}", ViewBag.TongDoanhThu ?? 0)</div>
+                    <div class="stat-label">Tổng doanh thu (VNĐ)</div>
+                </div>
+
+                <div class="stat-card count">
+                    <div class="stat-number">@(ViewBag.SoLuongHoaDon ?? 0)</div>
+                    <div class="stat-label">Số lượng hóa đơn</div>
+                </div>
+
+                <div class="stat-card average">
+                    <div class="stat-number">@String.Format("{0:N0}", ViewBag.TrungBinhHoaDon ?? 0)</div>
+                    <div class="stat-label">Trung bình/hóa đơn (VNĐ)</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">@ViewBag.TuNgay - @ViewBag.DenNgay</div>
+                    <div class="stat-label">Khoảng thời gian</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Mã hóa đơn</th>
+                <th>Ngày in</th>
+                <th>Tổng tiền</th>
+                <th>Chi tiết</th>
+                <th>Xóa</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+                foreach (var hoadon in Model)
+                {
+                    @* Tạo ID unique cho modal của mỗi hóa đơn *@
+                    var modalId = "modal_" + hoadon.MaHoaDon;
+                }
+            }
+            @* Lặp qua từng hóa đơn trong Model *@
+            @foreach (var hoadon in Model)
+            {
+                @* Tạo lại ID modal cho hóa đơn hiện tại *@
+                var modalId = "modal_" + hoadon.MaHoaDon;
+                <tr>
+                    @* Hiển thị STT và tăng biến đếm *@
+                    <td>@(i++)</td>
+                    <td>@hoadon.MaHoaDon</td>
+                    <td>@hoadon.NgayIn</td>
+                    @* Hiển thị tổng tiền với định dạng số có dấu phẩy *@
+                    <td>@String.Format("{0:N0}", hoadon.TongTien)</td>
+                    <td>
+                        <a target="_blank" class="btn btn-primary" asp-action="chiTietHoaDon" asp-route-mahoadon="@hoadon.MaHoaDon">Chi tiết</a>
+                    </td>
+                    <td>
+                        @* Nút xóa, khi click sẽ hiển thị modal xác nhận *@
+                        <button type="button" class="btn btn-danger" onclick="document.getElementById('@modalId').style.display='block'">Xóa</button>
+
+                        <!-- Modal -->
+                        <div class="modal" id="@modalId">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span>Xóa hóa đơn</span>
+                                        @* Nút đóng modal (dấu X) *@
+                                        <button class="btn-close" onclick="document.getElementById('@modalId').style.display='none'">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bạn có muốn xóa không?
+                                    </div>
+                                    <div class="modal-footer">
+                                        @* Link xác nhận xóa, truyền mã order phòng *@
+                                        <a class="btn btn-danger" asp-action="xoaHoadon" asp-route-maorder="@hoadon.MaOrderPhongNavigation.MaOrderPhong">Xác nhận</a>
+                                        <button class="btn btn-primary" onclick="document.getElementById('@modalId').style.display='none'">Hủy</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</body>
+</html>

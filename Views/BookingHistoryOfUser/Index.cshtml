@@ -1,0 +1,369 @@
+﻿@model IEnumerable<OrderPhong>
+@await Html.PartialAsync("header")
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách đặt phòng</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            background-color: #d0e4f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* Thông báo */
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            color: #333;
+        }
+
+        thead {
+            background-color: #f0f6fb;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin: 0 3px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+            .btn-danger:hover {
+                background-color: #c0392b;
+            }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: #fff;
+        }
+
+            .btn-success:hover {
+                background-color: #229954;
+            }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: #fff;
+        }
+
+            .btn-warning:hover {
+                background-color: #e67e22;
+            }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-dialog {
+            position: relative;
+            margin: 10% auto;
+            max-width: 500px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+            .btn-close:hover {
+                color: #000;
+            }
+
+        .payment-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+            .order-info h4 {
+                margin-top: 0;
+                color: #2c3e50;
+            }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paid {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Danh sách đặt phòng</h1>
+
+    <!-- Hiển thị thông báo -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-error">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Phòng</th>
+                <th>Ngày đến</th>
+                <th>Ngày đi</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+            }
+
+            @foreach (var order in Model)
+            {
+                var modalCancelId = "modalCancel_" + order.MaOrderPhong;
+                var modalPaymentId = "modalPayment_" + order.MaOrderPhong;
+                <tr>
+                    <td>@(i++)</td>
+                    <td>@order.MaPhongNavigation.TenPhong</td>
+                    <td>@order.NgayDen?.ToString("dd/MM/yyyy")</td>
+                    <td>@order.NgayDi?.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (order.TrangThaiThanhToan == 1)
+                        {
+                            <span class="status-badge status-paid">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending">Chưa thanh toán</span>
+                        }
+                    </td>
+                    <td>
+                        @if (order.TrangThaiThanhToan != 1)
+                        {
+                            <!-- Nút thanh toán -->
+                            <button type="button" class="btn btn-success" onclick="document.getElementById('@modalPaymentId').style.display='block'">
+                                Thanh toán
+                            </button>
+                        }
+
+                        <!-- Nút hủy -->
+                        <button type="button" class="btn btn-danger" onclick="document.getElementById('@modalCancelId').style.display='block'">
+                            Hủy
+                        </button>
+
+                        <!-- Modal Thanh toán -->
+                        @if (order.TrangThaiThanhToan != 1)
+                        {
+                            <div class="modal" id="@modalPaymentId">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <span>Thanh toán đặt phòng</span>
+                                            <button class="btn-close" onclick="document.getElementById('@modalPaymentId').style.display='none'">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="order-info">
+                                                <h4>Thông tin đặt phòng</h4>
+                                                <p><strong>Phòng:</strong> @order.MaPhongNavigation.TenPhong</p>
+                                                <p><strong>Ngày đến:</strong> @order.NgayDen?.ToString("dd/MM/yyyy")</p>
+                                                <p><strong>Ngày đi:</strong> @order.NgayDi?.ToString("dd/MM/yyyy")</p>
+                                                @* Tạm thời ẩn tổng tiền vì model chưa có field này *@
+                                                @* <p><strong>Tổng tiền:</strong> @order.TongTien?.ToString("N0") VNĐ</p> *@
+                                            </div>
+                                            <p style="text-align: center; font-weight: bold;">Chọn phương thức thanh toán:</p>
+                                            <div class="payment-options">
+                                                <form asp-action="PaymentByTransfer" method="post" style="display: inline;">
+                                                    <input type="hidden" name="maorder" value="@order.MaOrderPhong" />
+                                                    <button type="submit" class="btn btn-primary" onclick="if(confirm('Xác nhận thanh toán bằng chuyển khoản?')) { document.getElementById('@modalPaymentId').style.display='none'; return true; } return false;">
+                                                        💳 Chuyển khoản
+                                                    </button>
+                                                </form>
+
+                                                <form asp-action="PaymentByCash" method="post" style="display: inline;">
+                                                    <input type="hidden" name="maorder" value="@order.MaOrderPhong" />
+                                                    <button type="submit" class="btn btn-warning" onclick="if(confirm('Xác nhận thanh toán bằng tiền mặt?')) { document.getElementById('@modalPaymentId').style.display='none'; return true; } return false;">
+                                                        💵 Tiền mặt
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-primary" onclick="document.getElementById('@modalPaymentId').style.display='none'">Đóng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Modal Hủy đặt phòng -->
+                        <div class="modal" id="@modalCancelId">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span>Hủy phòng</span>
+                                        <button class="btn-close" onclick="document.getElementById('@modalCancelId').style.display='none'">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="order-info">
+                                            <h4>Thông tin đặt phòng</h4>
+                                            <p><strong>Phòng:</strong> @order.MaPhongNavigation.TenPhong</p>
+                                            <p><strong>Ngày đến:</strong> @order.NgayDen?.ToString("dd/MM/yyyy")</p>
+                                            <p><strong>Ngày đi:</strong> @order.NgayDi?.ToString("dd/MM/yyyy")</p>
+                                        </div>
+                                        <p style="text-align: center; color: #e74c3c; font-weight: bold;">
+                                            Bạn có chắc chắn muốn hủy đặt phòng này không?
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-danger" asp-action="removeOrder" asp-route-maorder="@order.MaOrderPhong" asp-route-maphong="@order.MaPhong">
+                                            Xác nhận hủy
+                                        </a>
+                                        <button class="btn btn-primary" onclick="document.getElementById('@modalCancelId').style.display='none'">
+                                            Không hủy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <script>
+        // Đóng modal khi click bên ngoài
+        window.onclick = function(event) {
+            var modals = document.getElementsByClassName('modal');
+            for (var i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+
+    @* Meta tag viewport để trang web responsive trên các thiết bị di động:
+       - width=device-width: chiều rộng bằng chiều rộng thiết bị
+       - initial-scale=1.0: tỷ lệ zoom ban đầu là 100% *@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    @* Tiêu đề trang web, sử dụng ViewData["Title"] từ controller/view 
+       kết hợp với tên ứng dụng "HotelManagement" *@
+    <title>@ViewData["Title"] - HotelManagement</title>
+    
+
+
+</head>
+<body>
+    @await Html.PartialAsync("header")
+    @RenderBody() @* Render nội dung chính của từng view cụ thể
+       Đây là nơi nội dung của các view con sẽ được chèn vào layout *@
+   
+</body>
+</html>

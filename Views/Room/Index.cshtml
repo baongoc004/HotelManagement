@@ -1,0 +1,525 @@
+﻿@model LoaiPhongPhongTrangThaiPhong
+@inject IHttpContextAccessor accessor
+@await Html.PartialAsync("header")
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container " style="border:1px solid black">
+    <div class="row">
+        @{
+            // Kiểm tra nếu có lỗi (thiếu thông tin) thì hiển thị thông báo
+            if (Model.error == false)
+            {
+                <h1 class="text-danger text-center">Bạn chưa nhập đủ thông tin</h1>
+            }
+        }
+
+        <!-- Sidebar bên trái chứa filter loại phòng và trạng thái -->
+        <div class="col-3 p-0 " style="border : 1px solid black">
+            <!-- Header cho phần filter loại phòng -->
+            <div class=" text-center list-group-item active" aria-current="true">Loại phòng</div>
+            <div class="text-center">
+                <a class="btn btn-block m-3" href="/room/index">All</a> <br />
+
+                <!-- Lặp qua danh sách loại phòng từ Model -->
+                @foreach (var loaiphong in Model.loaiphongs)
+                {
+                    <!-- Tạo link filter theo loại phòng, truyền MaLoaiPhong qua route -->
+                    <a class="btn btn-block m-3"
+                       asp-action="Index" asp-route-loaiphong="@loaiphong.MaLoaiPhong">@loaiphong.TenLoaiPhong</a>
+                    <br />
+                }
+            </div>
+
+            <!-- Header cho phần filter trạng thái phòng -->
+            <div class=" text-center list-group-item active" aria-current="true">Trạng thái phòng</div>
+            <div class="text-center">
+                <!-- Lặp qua danh sách trạng thái phòng từ Model -->
+                @foreach (var trangthai in Model.trangthaiphongs)
+                {
+                    <!-- Tạo link filter theo trạng thái phòng, truyền MaTrangThai qua route -->
+                    <a class="btn btn-block m-3"
+                       asp-action="Index" asp-route-trangthaiphong="@trangthai.MaTrangThai">@trangthai.TenTrangThai</a>
+                    <br />
+                }
+            </div>
+        </div>
+
+        <!-- Khu vực hiển thị danh sách phòng, có scroll nếu vượt quá 650px chiều cao -->
+        <div class="col-9 p-0 " style="max-height:650px;overflow-y:auto;overflow-x:hidden">
+            <div class="row">
+                <!-- Lặp qua danh sách phòng từ Model -->
+                @foreach (var phong in Model.phongs)
+                {
+                    <!-- Mỗi phòng chiếm 1/3 chiều rộng container -->
+                    <div class="col-4">
+                        <!-- Card Bootstrap để hiển thị thông tin phòng -->
+                        <div class="card" style="width: 18rem;">
+                            @{
+                                // Logic hiển thị hình ảnh phòng dựa trên loại phòng
+                                if (phong.MaLoaiPhongNavigation.MaLoaiPhong == "MLP1")
+                                {
+                                    <img src="~/pictures/phonggdon.jpg" height="200" class="card-img-top" alt="">
+                                }
+                                else if (phong.MaLoaiPhongNavigation.MaLoaiPhong == "MLP2")
+                                {
+                                    <img src="~/pictures/phonggdoi.jpg" height="200" class="card-img-top" alt="">
+
+                                }
+                                else if (phong.MaLoaiPhongNavigation.MaLoaiPhong == "MLP3")
+                                {
+                                    <img src="~/pictures/phonggiadinhh.jpg" height="200" class="card-img-top" alt="">
+                                }
+                                else
+                                {
+                                    <img src="~/pictures/vip.jpg" height="200" class="card-img-top" alt="">
+                                }
+                            }
+
+                            <!-- Nội dung card -->
+                            <div class="card-body">
+                                <!-- Tiêu đề: Tên phòng + Trạng thái -->
+                                <h5 class="card-title">@phong.TenPhong - @phong.MaTrangThaiNavigation.TenTrangThai</h5>
+                                <!-- Thông tin: Loại phòng + Giá (định dạng số có dấu phẩy) -->
+                                <div class="card-text">@phong.MaLoaiPhongNavigation.TenLoaiPhong - @String.Format("{0:N0}", phong.MaLoaiPhongNavigation.GiaPhong)</div>
+                                <div>
+                                    @{
+                                        // Logic hiển thị nút action dựa trên trạng thái phòng
+                                        if (phong.MaTrangThaiNavigation.MaTrangThai == "MTT1")//phòng trống
+                                        {
+                                            if (accessor.HttpContext.Session.GetString("UserName") != null) //nếu tài khoản là khách hàng thì hiện "đặt trước"
+                                            {
+                                                <!-- Nút mở modal đặt trước cho khách hàng -->
+                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#@phong.MaPhong">
+                                                    Đặt trước
+                                                </button>
+
+                                            }
+                                            //nếu tài khoản là admin hoặc nhân viên thì hiện là "đăt phòng"
+                                            else
+                                            {
+                                                <!-- Nút mở modal đặt phòng cho admin/nhân viên -->
+                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#@phong.MaPhong">
+                                                    Đặt phòng
+                                                </button>
+
+                                            }
+
+                                            <!-- Modal Bootstrap để hiển thị form đặt phòng -->
+                                            <!-- The Modal -->
+                                            <div class="modal fade " id="@phong.MaPhong">
+                                                <!-- Modal lớn và căn giữa -->
+                                                <div class="modal-dialog modal-dialog-centered modal-xl">
+                                                    <div class="modal-content">
+
+                                                        <!-- Modal Header -->
+                                                        <div class="modal-header">
+                                                            <h4 class="modal-title">Đặt phòng - @phong.MaLoaiPhongNavigation.TenLoaiPhong - @phong.TenPhong - @String.Format("{0:N0}", phong.MaLoaiPhongNavigation.GiaPhong)</h4>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+
+                                                        <!-- Modal body -->
+                                                        <div class="modal-body row ">
+                                                            <!-- Form đặt phòng và dịch vụ -->
+                                                            <form method="post" class="form-group row" asp-controller="Room" asp-action="datPhongVaDichVu" id="myForm">
+                                                                <!-- Input ẩn lưu giá phòng -->
+                                                                <input class="tienPhong" type="hidden" value="@phong.MaLoaiPhongNavigation.GiaPhong">
+                                                                <!-- Cột trái: Thông tin khách hàng -->
+                                                                <div class="col-6 p-5" style="border:1px solid black">
+                                                                    @if (accessor.HttpContext.Session.GetString("UserName") != null) // nếu tài khoản là khách hàng thì tự động điện thông tin vào phiếu đăng kí đặt phòng
+                                                                    {
+                                                                        <!-- Form cho khách hàng đã đăng nhập (các field bị disable) -->
+                                                                        <div class="text-center"><b>Thông tin khách hàng</b></div>
+                                                                        <label class="form-label">Họ và tên</label>
+                                                                        <!-- Input disabled, giá trị từ Model.Person -->
+                                                                        <input class="form-control" name="hoten" value="@Model.Person.HoTen" disabled />
+
+                                                                        <label class="form-label">Tuổi</label>
+                                                                        <input class="form-control" type="number" name="tuoi" value="@Model.Person.Tuoi" disabled />
+
+                                                                        <label class="form-label">Giới tính</label>
+                                                                        <select class="form-select" name="gioitinh">
+                                                                            <!-- Option được chọn dựa trên giới tính từ Model -->
+                                                                            <option disabled value="0" selected="@Equals(Model.Person.GioiTinh,0)">Nam</option>
+                                                                            <option disabled value="1" selected="@Equals(Model.Person.GioiTinh,1)">Nữ</option>
+                                                                            <option disabled value="1" selected="@Equals(Model.Person.GioiTinh,2)">Khác</option>
+                                                                        </select>
+
+                                                                        <label class="form-label">CCCD</label>
+                                                                        <input class="form-control" name="cccd" value="@Model.Person.PersonId " disabled>
+
+                                                                        <label class="form-label">SĐT</label>
+                                                                        <input class="form-control" name="sdt" value="@Model.Person.Sdt" disabled>
+                                                                    }
+                                                                    else //nếu là tài khoản admin hoặc nhân viên thì tự điền
+                                                                    {
+                                                                        <!-- Form cho admin/nhân viên (các field có thể chỉnh sửa) -->
+                                                                        <div class="text-center"><b>Thông tin khách hàng</b></div>
+                                                                        <label class="form-label">Họ và tên</label>
+                                                                        <input class="form-control" name="hoten" />
+
+                                                                        <label class="form-label">Tuổi</label>
+                                                                        <input class="form-control" type="number" name="tuoi" />
+
+                                                                        <label class="form-label">Giới tính</label>
+                                                                        <select class="form-select" name="gioitinh">
+                                                                            <option value="0">Nam</option>
+                                                                            <option value="1">Nữ</option>
+                                                                            <option value="2">Khác</option>
+                                                                        </select>
+
+                                                                        <label class="form-label">CCCD</label>
+                                                                        <input class="form-control" name="cccd">
+
+                                                                        <label class="form-label">SĐT</label>
+                                                                        <input class="form-control" name="sdt">
+
+                                                                    }
+
+                                                                    <!-- Phần chung cho cả hai loại tài khoản -->
+                                                                    <label class="form-label">Ngày đến:</label>
+                                                                    <!-- Input date với hàm tinhNgay() khi thay đổi -->
+                                                                    <input class="dayIn" type="date" oninput="tinhNgay(this)" name="ngayden">
+
+                                                                    <label class="form-label">Ngày đi</label>
+                                                                    <input class="dayOut" type="date" oninput="tinhNgay(this)" name="ngaydi"> <br>
+
+                                                                    <input type="hidden" value="@phong.MaPhong" name="maphong"> <!-- Input ẩn chứa mã phòng -->
+                                                                    <div class="totalDays">Tổng ngày thuê: </div>
+                                                                    <div class="tongTienPhong">Tổng tiền phòng: </div>
+                                                                </div>
+
+                                                                <!-- Cột phải: Dịch vụ -->
+                                                                <div class="col-6 p-5" style="border:1px solid black">
+                                                                    <div class="text-center"><b>Dịch vụ</b></div>
+                                                                    <table class="table" id="dichVuTable">
+                                                                        <!-- Bảng hiển thị danh sách dịch vụ -->
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Chọn</th>
+                                                                                <th>Tên dịch vụ</th>
+                                                                                <th>Giá dịch vụ</th>
+                                                                                <th>Số lượng</th>
+                                                                                <th>Tổng tiền</th>
+                                                                            </tr>
+                                                                        </thead>
+
+                                                                        <tbody>
+                                                                            @{
+                                                                                foreach (var dichvu in Model.dichvus)  // Lặp qua danh sách dịch vụ từ Model
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <!-- Checkbox để chọn dịch vụ, scale 2.5 lần để dễ nhìn -->
+                                                                                            <input style=" transform: scale(2.5); " type="checkbox" class="checkbox" data-gia="@dichvu.GiaDichVu" onclick="updateTotal(this)">
+                                                                                        </td>
+                                                                                        <!-- Cell chứa tên dịch vụ và mã dịch vụ trong data attribute -->
+                                                                                        <td class="madichvu" data-madichvu="@dichvu.MaDichVu">@dichvu.TenDichVu</td>
+                                                                                        <td>@String.Format("{0:N0}", dichvu.GiaDichVu)</td>
+                                                                                        <td>
+                                                                                            <!-- Input số lượng, width 50px -->
+                                                                                            <input style="width:50px" class="form-control quantity" data-gia="@dichvu.GiaDichVu" oninput="updateTotal(this)" />
+                                                                                        </td>
+
+                                                                                        <td class="total"></td>  <!-- Cell hiển thị tổng tiền của dịch vụ -->
+                                                                                    </tr>
+                                                                                }
+                                                                            }
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <!-- Các input ẩn để lưu thông tin dịch vụ đã chọn -->
+                                                                    <input type="hidden" id="selectedServiceIds" name="selectedServiceIds" />
+                                                                    <input type="hidden" id="servicePrice" name="servicePrice" />
+                                                                    <input type="hidden" id="selectedQuantities" name="selectedQuantities" />
+                                                                    <div class="tongTien">Tổng tiền dịch vụ: 0</div>
+                                                                    <div class="totalAll">Tổng tất cả: </div>
+                                                                </div>
+
+                                                                <!-- Modal footer -->
+                                                                <div class="modal-footer">
+                                                                    <button type="submit" class="btn btn-danger" data-bs-dismiss="modal" onclick="submitForm(this)">Xác nhận</button>
+                                                                </div>
+                                                            </form>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="closeForm()">Close</button>
+                                                            </div>
+                                                        </div>
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        else if (phong.MaTrangThaiNavigation.MaTrangThai == "MTT2") // đang thuê
+                                        {
+                                            //nếu không có tài khoản nào đăng nhập thì ko hiện gì cả
+                                            if (accessor.HttpContext.Session.GetString("UserName") == null && accessor.HttpContext.Session.GetString("admin") == null && accessor.HttpContext.Session.GetString("nhanvien") == null)
+                                            {
+
+                                            }
+                                            //nếu có tài khoản admin hoặc nhân viên đăng nhập thì hiện nút thanh toán
+                                            if (accessor.HttpContext.Session.GetString("admin") != null || accessor.HttpContext.Session.GetString("nhanvien") != null)
+                                            {
+                                                <!-- Link đến action thanhToan với mã phòng -->
+                                                <a class="btn btn-primary" asp-controller="Room" asp-action="thanhToan" asp-route-maphong="@phong.MaPhong">Thanh toán</a>
+                                            }
+                                            //nếu đăng nhập tài khoản user
+                                            else if (accessor.HttpContext.Session.GetString("UserName") != null)
+                                            {
+                                                <!-- Nút disabled cho user -->
+                                                <button class="btn btn-primary" disabled>Đang thuê</button>
+                                            }
+                                        }
+                                        else if (phong.MaTrangThaiNavigation.MaTrangThai == "MTT3") // đặt trước
+                                        {
+                                            //nếu là tài khoản admin hoặc nhân viên thì hiện nút xác nhận
+                                            if (accessor.HttpContext.Session.GetString("UserName") == null
+                                            && (accessor.HttpContext.Session.GetString("admin") != null || accessor.HttpContext.Session.GetString("nhanvien") != null))
+
+                                            {
+                                                <!-- Nút mở modal xác nhận cho admin/nhân viên -->
+                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#@phong.MaPhong">
+                                                    Xác nhận
+                                                </button>
+                                                <!-- Modal xác nhận đặt phòng -->
+                                                <!-- The Modal -->
+                                                <div class="modal fade" id="@phong.MaPhong">
+                                                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                                                        <div class="modal-content">
+
+                                                            <!-- Modal Header -->
+                                                            <div class="modal-header">
+                                                                <h4 class="modal-title">Xác nhận</h4>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+
+                                                            <!-- Modal body -->
+                                                            <div class="modal-body row">
+                                                                <form method="post" class="form-group row">
+                                                                    @{
+                                                                        // Lấy đơn đặt phòng đầu tiên (nếu có) liên kết với phòng hiện tại
+                                                                        var firstOrderPhong = phong.OrderPhongs?.FirstOrDefault();
+                                                                        // Kiểm tra nếu có đơn đặt phòng và có thông tin người đặt
+                                                                        if (firstOrderPhong != null && firstOrderPhong.Person != null)
+                                                                        {
+                                                                            <div class="col-6 p-5" style="border:1px solid black">
+                                                                                <div class="text-center"><b>Thông tin khách hàng</b></div>
+                                                                                <label class="form-label">Họ và tên</label>
+                                                                                <input class="form-control" value="@firstOrderPhong.Person.HoTen" disabled> <!-- Chỉ hiển thị, không cho chỉnh sửa -->
+
+                                                                                <label class="form-label">Tuổi</label>
+                                                                                <input class="form-control" value="@firstOrderPhong.Person.Tuoi" type="number" disabled> <!-- Dạng số, không cho chỉnh sửa -->
+
+                                                                                <!-- Lỗi typo: "lable" thay vì "label" -->
+                                                                                <lable class="form-lable">Giới tính</lable>
+                                                                                <select class="form-select">
+                                                                                    <option disabled value="0" selected="@Equals(firstOrderPhong.Person.GioiTinh,0)">Nam</option>
+                                                                                    <option disabled value="1" selected="@Equals(firstOrderPhong.Person.GioiTinh,1)">Nữ</option>
+                                                                                    <option disabled value="2" selected="@Equals(firstOrderPhong.Person.GioiTinh,2)">Khác</option>
+                                                                                </select>
+
+                                                                                <label class="form-label">CCCD</label>
+                                                                                <input disabled class="form-control" value="@firstOrderPhong.Person.PersonId">
+
+                                                                                <label class="form-label">SĐT</label>
+                                                                                <input disabled class="form-control" value="@firstOrderPhong.Person.Sdt">
+
+                                                                                <!-- Hiển thị ngày đến từ OrderPhongs -->
+                                                                                <label>Ngày đến</label>
+                                                                                <div>@firstOrderPhong.NgayDen.ToString()</div>
+
+                                                                                <label>Ngày đi</label>
+                                                                                <div>@firstOrderPhong.NgayDi</div>
+
+                                                                            </div>
+
+                                                                            <div class="col-6 p-5" style="border:1px solid black"> <!-- Cột phải: Dịch vụ đã đặt -->
+                                                                                <div class="text-center">Dịch vụ</div>
+                                                                                <table class="table"> <!-- Bảng hiển thị dịch vụ đã đặt -->
+                                                                                    <thead>
+                                                                                        <tr>
+                                                                                            <th>STT</th>
+                                                                                            <th>Tên dịch vụ</th>
+                                                                                            <th>Giá dịch vụ</th>
+                                                                                            <th>Số lượng</th>
+                                                                                            <th>Tổng tiền</th>
+                                                                                        </tr>
+                                                                                    </thead>
+
+                                                                                    <tbody>
+                                                                                        @{
+                                                                                            if (firstOrderPhong.OrderPhongDichVus != null)
+                                                                                            {
+                                                                                                int i = 1;
+                                                                                                <!-- Lặp qua danh sách dịch vụ đã đặt trong đơn đặt phòng -->
+                                                                                                foreach (var dichvu in firstOrderPhong.OrderPhongDichVus)
+                                                                                                {
+                                                                                                    <tr>
+                                                                                                        <th>@(i++)</th>
+                                                                                                        <th>@dichvu.MaDichVuNavigation.TenDichVu</th>
+                                                                                                        <th>@String.Format("{0:N0}", @dichvu.DonGia)</th>
+                                                                                                        <th>@dichvu.SoLuong</th>
+                                                                                                        <th>@String.Format("{0:N0}", (dichvu.DonGia * dichvu.SoLuong))</th>
+                                                                                                    </tr>
+                                                                                                }
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                <tr>
+                                                                                                    <td colspan="5" class="text-center">Không có dịch vụ nào được đặt</td>
+                                                                                                </tr>
+                                                                                            }
+                                                                                        }
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <div class="col-12 text-center">
+                                                                                <p class="text-warning">Không có thông tin đặt phòng</p>
+                                                                            </div>
+                                                                        }
+                                                                    }
+                                                                </form>
+
+                                                            </div>
+
+                                                            <!-- Modal footer -->
+                                                            <div class="modal-footer">
+                                                                <!-- Link xác nhận đặt phòng -->
+                                                                <a class="btn btn-danger" asp-action="xacNhanDatPhong" asp-route-maphong="@phong.MaPhong">Xác nhận</a>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-primary" disabled>Đã đặt trước</button>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var g_tongDichVu = 0
+    var tongTienPhong = 0;
+    var element_cua_ham_updateTotal; // Biến lưu element của hàm updateTotal (không sử dụng)
+    function tinhNgay(element) {
+        var form = element.closest('.form-group'); // Tìm form chứa element hiện tại
+        var dayIn = form.querySelector(".dayIn"); // Lấy input ngày đến
+        var dayOut = form.querySelector(".dayOut");  // Lấy input ngày đi
+        var date1 = new Date(dayIn.value); // Tạo Date object từ giá trị input
+        var date2 = new Date(dayOut.value);
+        var diffTime = Math.abs(date2 - date1);  // Tính hiệu số thời gian (milliseconds)
+
+        // Chuyển đổi từ milliseconds sang ngày và làm tròn lên
+        var totalDays = form.querySelector(".totalDays").textContent = Math.ceil(diffTime / 1000 / 60 / 60 / 24)
+        form.querySelector(".totalDays").textContent = "Tổng ngày thuê: " + totalDays      // Cập nhật text hiển thị tổng ngày thuê
+        tongTienPhong = totalDays * form.querySelector(".tienPhong").value       // Tính tổng tiền phòng = số ngày * giá phòng/ngày
+
+        // Hiển thị tổng tiền phòng với định dạng VND
+        form.querySelector(".tongTienPhong").textContent = "Tổng tiền phòng: " + tongTienPhong.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+
+        // Cập nhật tổng tất cả = tiền phòng + tiền dịch vụ
+        form.querySelector(".totalAll").textContent =
+            "Tổng tất cả: " + (tongTienPhong + g_tongDichVu).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+    }
+
+    // Hàm cập nhật tổng tiền
+    function updateTotal(element) {
+        var totalDichVu = 0;// tổng chung các dịch vụ đã chọn
+
+
+        var form = element.closest('.form-group');  // Tìm form chứa element hiện tại
+
+        // Duyệt qua mỗi dòng trong bảng
+        var tableRows = form.querySelectorAll("#dichVuTable tbody tr");
+
+        tableRows.forEach(function (row) {
+            var checkbox = row.querySelector(".checkbox");  // Lấy checkbox trong dòng
+            var quantityInput = row.querySelector(".quantity");   // Lấy input số lượng trong dòng
+            var totalCell = row.querySelector(".total");  // Lấy cell hiển thị tổng tiền
+
+            // Kiểm tra checkbox đã chọn
+            if (checkbox.checked) {
+                // Lấy giá và số lượng
+                var gia = parseFloat(checkbox.getAttribute("data-gia"));
+                var quantity = parseInt(quantityInput.value);
+
+                // Tính tổng tiền cho dòng
+                var rowTotal = gia * quantity;
+
+                // Cập nhật tổng tiền và hiển thị
+                totalDichVu += rowTotal;
+                totalCell.textContent = rowTotal.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+            } else {
+                // Nếu checkbox không chọn, đặt tổng tiền cho dòng là 0
+                totalCell.textContent = "0";
+            }
+        });
+
+        // Hiển thị tổng tiền chung
+        form.querySelector(".tongTien").textContent = "Tổng tiền dịch vụ: " + totalDichVu.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+        form.querySelector(".totalAll").textContent = "Tổng tất cả: " + (tongTienPhong + totalDichVu).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+        g_tongDichVu = totalDichVu;
+    }
+
+    // Gửi biểu mẫu sau khi cập nhật dữ liệu từ checkbox và số lượng
+    function submitForm(element) {
+        console.log('submitForm')
+        // Cập nhật các trường input ẩn trước khi nộp biểu mẫu
+        updateSelectedData(element);
+
+        // Nộp biểu mẫu
+        document.getElementById("myForm").submit();
+    }
+
+    // Hàm thu thập các dịch vụ đã chọn và cập nhật vào các input ẩn
+    function updateSelectedData(element) {
+        var form = element.closest('.form-group'); // Tìm form gần nhất
+        var serviceIds = [];        // Mảng lưu mã dịch vụ
+        var servicePrice = [];      // Mảng lưu giá dịch vụ
+        var selectedQuantities = [];    // Mảng lưu số lượng đã chọn
+
+        // Các dòng trong bảng dịch vụ
+        var rows = form.querySelectorAll("#dichVuTable tbody tr");
+
+        for (var row of rows) {
+            var checkbox = row.querySelector(".checkbox");      // Ô chọn dịch vụ
+            var quantity = row.querySelector(".quantity");      // Ô nhập số lượng
+            var madichvu = row.querySelector(".madichvu");      // Mã dịch vụ (ẩn hoặc span)
+            if (checkbox.checked) { // Nếu được chọn
+                serviceIds.push(madichvu.getAttribute("data-madichvu"));    // Lấy mã dịch vụ
+                servicePrice.push(checkbox.getAttribute("data-gia"));       // Lấy đơn giá từ checkbox
+                selectedQuantities.push(quantity.value);                    // Lấy số lượng người dùng nhập
+            }
+        }
+
+        // Gán dữ liệu đã chọn vào các trường input ẩn trong form
+        form.querySelector("#selectedServiceIds").value = serviceIds.join(',');
+        form.querySelector("#servicePrice").value = servicePrice.join(',');
+        form.querySelector("#selectedQuantities").value = selectedQuantities.join(',');
+    }
+
+    // Hàm đặt lại toàn bộ form (clear dữ liệu đã nhập/chọn)
+    function closeForm() {
+        var form = document.getElementById("myForm");
+        form.reset(); // Reset tất cả các trường trong form về mặc định
+    }
+
+</script>
