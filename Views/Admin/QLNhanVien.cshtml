@@ -1,0 +1,281 @@
+﻿@model NhanVien_VaiTro
+@await Html.PartialAsync("header")
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý nhân viên</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f9f9fb;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #415a77;
+            color: white;
+            padding: 15px 0;
+            border-radius: 8px;
+        }
+
+        .btn {
+            background-color: #4a6984;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px;
+        }
+
+            .btn:hover {
+                background-color: #2d3e50;
+            }
+
+        .btn-danger {
+            background-color: #c94c4c;
+        }
+
+            .btn-danger:hover {
+                background-color: #a73838;
+            }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 40%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .form-group label {
+                margin-top: 10px;
+                font-weight: bold;
+            }
+
+        .form-control, .form-select {
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        thead {
+            background-color: #dce3ea;
+        }
+
+        .text-danger {
+            color: #c94c4c;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Quản lý nhân viên</h1>
+    <div class="text-danger">
+        <div asp-validation-summary="All"></div>
+    </div>
+
+    <button class="btn" onclick="openModal('modalAdd')">Thêm nhân viên</button>
+
+    <!-- Modal Thêm -->
+    <div id="modalAdd" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Thêm nhân viên</h4>
+                <button class="btn-close" onclick="closeModal('modalAdd')">&times;</button>
+            </div>
+            <form method="post" class="form-group" asp-controller="admin" asp-action="QLNhanVien">
+                <label>Nhân viên ID</label>
+                <input class="form-control" name="manhanvien" />
+                <label>Họ tên</label>
+                <input class="form-control" name="hoten" />
+                <label>Tuổi</label>
+                <input class="form-control" type="number" name="tuoi" />
+                <label>Giới tính</label>
+                <select class="form-select" name="gioitinh">
+                    <option value="0">Nam</option>
+                    <option value="1">Nữ</option>
+                </select>
+                <label>SĐT</label>
+                <input class="form-control" name="sdt" />
+                <label>Vai trò</label>
+                <select class="form-select" name="vaitro">
+                    @foreach (var vaitro in Model.vaitros)
+                    {
+                        <option value="@vaitro.MaVaiTro">@vaitro.TenVaiTro</option>
+                    }
+                </select>
+                <label>Tài khoản</label>
+                <input class="form-control" name="username" />
+                <label>Mật khẩu</label>
+                <input class="form-control" name="password" />
+                <label>Xác nhận mật khẩu</label>
+                <input class="form-control" name="confirm" />
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Nhân Viên ID</th>
+                <th>Họ tên</th>
+                <th>Tuổi</th>
+                <th>Giới tính</th>
+                <th>SĐT</th>
+                <th>Vai trò</th>
+                <th>Chỉnh sửa</th>
+                <th>Xóa</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+                foreach (var nv in Model.nhanviens)
+                {
+                    string modalEditId = "edit" + nv.NhanVienId;
+                    string modalDeleteId = "del" + nv.NhanVienId;
+                    <tr>
+                        <td>@(i++)</td>
+                        <td>@nv.NhanVienNavigation.PersonId</td>
+                        <td>@nv.NhanVienNavigation.HoTen</td>
+                        <td>@nv.NhanVienNavigation.Tuoi</td>
+                        <td>@(nv.NhanVienNavigation.GioiTinh == 0 ? "Nam" : "Nữ")</td>
+                        <td>@nv.NhanVienNavigation.Sdt</td>
+                        <td>@nv.MaVaiTroNavigation.TenVaiTro</td>
+                        <td>
+                            <button class="btn" onclick="openModal('@modalEditId')">Sửa</button>
+                            <div id="@modalEditId" class="modal">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4>Sửa nhân viên</h4>
+                                        <button class="btn-close" onclick="closeModal('@modalEditId')">&times;</button>
+                                    </div>
+                                    <form class="form-group" method="post" asp-action="updateThongTinNhanVien">
+                                        <label>Nhân viên ID</label>
+                                        <input class="form-control" name="manhanvien" value="@nv.NhanVienId" />
+                                        <label>Họ tên</label>
+                                        <input class="form-control" name="hoten" value="@nv.NhanVienNavigation.HoTen" />
+                                        <label>Tuổi</label>
+                                        <input class="form-control" name="tuoi" type="number" value="@nv.NhanVienNavigation.Tuoi" />
+                                        <label>Giới tính</label>
+                                        <select class="form-select" name="gioitinh">
+                                            <option value="0" selected="@Equals(nv.NhanVienNavigation.GioiTinh,0)">Nam</option>
+                                            <option value="1" selected="@Equals(nv.NhanVienNavigation.GioiTinh,1)">Nữ</option>
+                                        </select>
+                                        <label>SĐT</label>
+                                        <input class="form-control" name="sdt" value="@nv.NhanVienNavigation.Sdt" />
+                                        <label>Vai trò</label>
+                                        <select class="form-select" name="vaitro">
+                                            @foreach (var v in Model.vaitros)
+                                            {
+                                                <option value="@v.MaVaiTro" selected="@Equals(v.MaVaiTro, nv.MaVaiTroNavigation.MaVaiTro)">
+                                                    @v.TenVaiTro
+                                                </option>
+                                            }
+                                        </select>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-danger">Xác nhận</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" onclick="openModal('@modalDeleteId')">Xóa</button>
+                            <div id="@modalDeleteId" class="modal">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4>Xóa nhân viên</h4>
+                                        <button class="btn-close" onclick="closeModal('@modalDeleteId')">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bạn có chắc muốn xóa không?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-danger" asp-action="xoaNhanVien" asp-route-manhanvien="@nv.NhanVienId">Xác nhận</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</body>
+</html>

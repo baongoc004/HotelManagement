@@ -1,0 +1,437 @@
+﻿@model OrderPhong
+@await Html.PartialAsync("header")
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đặt phòng</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1, h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .info-group {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .info-block {
+            flex: 1 1 45%;
+        }
+
+            .info-block label {
+                display: block;
+                font-weight: 600;
+                margin-top: 10px;
+                margin-bottom: 5px;
+            }
+
+            .info-block input {
+                width: 100%;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                background-color: #f9f9f9;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #eaf0f7;
+            font-weight: bold;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: #4cafaf;
+            color: #fff;
+        }
+
+        .btn-dark {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .title-paid {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #0066cc;
+        }
+
+        /* Styles cho PDF */
+        .pdf-content {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+        }
+
+        .pdf-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .pdf-section {
+            margin-bottom: 20px;
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+            .pdf-table th,
+            .pdf-table td {
+                border: 1px solid #000;
+                padding: 8px;
+                text-align: left;
+            }
+
+            .pdf-table th {
+                background-color: #f0f0f0;
+                font-weight: bold;
+            }
+    </style>
+    <!-- Thêm thư viện jsPDF và html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    @if (Model == null)
+    {
+        <h1 class="title-paid">Phòng đã thanh toán</h1>
+    }
+    else
+    {
+        float tienphong = Model.MaPhongNavigation.MaLoaiPhongNavigation.GiaPhong;
+        DateTime ngayden = Convert.ToDateTime(Model.NgayDen);
+        DateTime ngaydi = Convert.ToDateTime(Model.NgayDi);
+        int totalDays = Convert.ToInt32((ngaydi - ngayden).TotalDays);
+        float tongtienphong = totalDays * tienphong;
+        float tongtiendichvu = 0;
+
+        <div class="container" id="invoice-content">
+            <div class="section">
+                <h2>@Model.MaPhongNavigation.TenPhong - @String.Format("{0:N0}", tienphong) VND</h2>
+                <div class="info-group">
+                    <div class="info-block">
+                        <label>Ngày đến</label>
+                        <input disabled value="@ngayden.ToString("dd/MM/yyyy")" />
+                        <label>Ngày đi</label>
+                        <input disabled value="@ngaydi.ToString("dd/MM/yyyy")" />
+                    </div>
+                    <div class="info-block">
+                        <label>Số ngày</label>
+                        <input disabled value="@totalDays" />
+                        <label>Tổng tiền phòng</label>
+                        <input disabled value="@String.Format("{0:N0}", tongtienphong)" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Thông tin khách hàng</h2>
+                <div class="info-group">
+                    <div class="info-block">
+                        <label>Họ và tên</label>
+                        <input disabled value="@Model.Person.HoTen" />
+                        <label>Tuổi</label>
+                        <input disabled value="@Model.Person.Tuoi" />
+                        <label>Giới tính</label>
+                        <input disabled value="@(@Model.Person.GioiTinh == 0 ? "Nam" : "Nữ")" />
+                    </div>
+                    <div class="info-block">
+                        <label>CCCD</label>
+                        <input disabled value="@Model.Person.PersonId" />
+                        <label>SĐT</label>
+                        <input disabled value="@Model.Person.Sdt" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Dịch vụ sử dụng</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên dịch vụ</th>
+                            <th>Số lượng</th>
+                            <th>Giá</th>
+                            <th>Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int i = 1;
+                            foreach (var dv in Model.OrderPhongDichVus)
+                            {
+                                float tongdv = dv.SoLuong.GetValueOrDefault() * dv.DonGia.GetValueOrDefault();
+
+                                tongtiendichvu += tongdv;
+                                <tr>
+                                    <td>@i</td>
+                                    <td>@dv.MaDichVuNavigation.TenDichVu</td>
+                                    <td>@dv.SoLuong</td>
+                                    <td>@String.Format("{0:N0}", dv.DonGia)</td>
+                                    <td>@String.Format("{0:N0}", tongdv)</td>
+                                </tr>
+                                i++;
+                            }
+
+                            float tongtientatca = tongtienphong + tongtiendichvu;
+                        }
+                        <tr>
+                            <th colspan="4">Tổng tiền dịch vụ</th>
+                            <td>@String.Format("{0:N0}", tongtiendichvu)</td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">Tổng tiền phòng</th>
+                            <td>@String.Format("{0:N0}", tongtienphong)</td>
+                        </tr>
+                        <tr>
+                            <th colspan="4">Tổng cộng</th>
+                            <td>@String.Format("{0:N0}", tongtienphong + tongtiendichvu)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-container">
+                    <button class="btn btn-dark" onclick="exportToPDF()">In hóa đơn</button>
+                    <a class="btn btn-primary"
+                       asp-action="addHoadon"
+                       asp-route-maorder="@Model.MaOrderPhong"
+                       asp-route-tongtien="@(tongtienphong + tongtiendichvu)"
+                       asp-route-maphong="@Model.MaPhong"
+                       target="_blank">Xác nhận</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden data for PDF generation -->
+        <div id="pdf-data" style="display: none;">
+            <div class="pdf-content">
+                <div class="pdf-header">
+                    <h1>HÓA ĐƠN THANH TOÁN</h1>
+                    <p>Khách sạn XYZ</p>
+                    <p>Mã đơn: @Model.MaOrderPhong</p>
+                    <p>Ngày in: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+
+                <div class="pdf-section">
+                    <h3>Thông tin phòng</h3>
+                    <p><strong>Tên phòng:</strong> @Model.MaPhongNavigation.TenPhong</p>
+                    <p><strong>Giá phòng:</strong> @String.Format("{0:N0}", tienphong) VND/đêm</p>
+                    <p><strong>Ngày đến:</strong> @ngayden.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Ngày đi:</strong> @ngaydi.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Số ngày:</strong> @totalDays ngày</p>
+                    <p><strong>Tổng tiền phòng:</strong> @String.Format("{0:N0}", tongtienphong) VND</p>
+                </div>
+
+                <div class="pdf-section">
+                    <h3>Thông tin khách hàng</h3>
+                    <p><strong>Họ và tên:</strong> @Model.Person.HoTen</p>
+                    <p><strong>CCCD:</strong> @Model.Person.PersonId</p>
+                    <p><strong>Tuổi:</strong> @Model.Person.Tuoi</p>
+                    <p><strong>Giới tính:</strong> @(@Model.Person.GioiTinh == 0 ? "Nam" : "Nữ")</p>
+                    <p><strong>SĐT:</strong> @Model.Person.Sdt</p>
+                </div>
+
+                <div class="pdf-section">
+                    <h3>Dịch vụ sử dụng</h3>
+                    <table class="pdf-table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên dịch vụ</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int j = 1;
+                                foreach (var dv in Model.OrderPhongDichVus)
+                                {
+                                    float tongdv = dv.SoLuong.GetValueOrDefault() * dv.DonGia.GetValueOrDefault();
+                                    <tr>
+                                        <td>@j</td>
+                                        <td>@dv.MaDichVuNavigation.TenDichVu</td>
+                                        <td>@dv.SoLuong</td>
+                                        <td>@String.Format("{0:N0}", dv.DonGia) VND</td>
+                                        <td>@String.Format("{0:N0}", tongdv) VND</td>
+                                    </tr>
+                                    j++;
+                                }
+                            }
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 20px; text-align: right;">
+                        <p><strong>Tổng tiền dịch vụ: @String.Format("{0:N0}", tongtiendichvu) VND</strong></p>
+                        <p><strong>Tổng tiền phòng: @String.Format("{0:N0}", tongtienphong) VND</strong></p>
+                        <p style="font-size: 18px; color: #d9534f;"><strong>TỔNG CỘNG: @String.Format("{0:N0}", tongtienphong + tongtiendichvu) VND</strong></p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; text-align: center;">
+                    <p>Cảm ơn quý khách đã sử dụng dịch vụ!</p>
+                    <p>---</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <script>
+        function exportToPDF() {
+            try {
+                // Lấy nội dung cần in từ thẻ ẩn
+                const element = document.getElementById('pdf-data');
+                const content = element.innerHTML;
+
+                // Tạo một div tạm thời để render nội dung
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                tempDiv.style.width = '800px';
+                tempDiv.style.padding = '20px';
+                tempDiv.style.backgroundColor = 'white';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                document.body.appendChild(tempDiv);
+
+                // Sử dụng html2canvas để chuyển HTML thành canvas
+                html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                }).then(function(canvas) {
+                    // Xóa div tạm thời
+                    document.body.removeChild(tempDiv);
+
+                    // Tạo PDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    // Thêm trang đầu tiên
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    // Thêm các trang tiếp theo nếu cần
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    // Lấy thông tin để đặt tên file
+                    const roomName = '@Model?.MaPhongNavigation?.TenPhong' || 'HoaDon';
+                    const customerName = '@Model?.Person?.HoTen' || 'KhachHang';
+                    const date = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+                    const fileName = `HoaDon_${roomName}_${customerName}_${date}.pdf`;
+
+                    // Lưu file PDF
+                    pdf.save(fileName);
+                }).catch(function(error) {
+                    console.error('Lỗi khi tạo PDF:', error);
+                    alert('Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại!');
+                });
+
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi xuất PDF. Vui lòng thử lại!');
+            }
+        }
+
+        // Fallback function giữ nguyên chức năng in cũ
+        function inHoaDon() {
+            var data = document.getElementById('invoice-content');
+            if (!data) {
+                alert('Không tìm thấy nội dung để in!');
+                return;
+            }
+
+            var dataBackUp = data.innerHTML;
+            var dataRemoveSomeElements = data.querySelectorAll('div.btn-container');
+
+            // Ẩn các nút khi in
+            dataRemoveSomeElements.forEach((div) => {
+                div.style.display = 'none';
+            });
+
+            window.print();
+
+            // Khôi phục lại nội dung
+            setTimeout(() => {
+                dataRemoveSomeElements.forEach((div) => {
+                    div.style.display = 'flex';
+                });
+            }, 1000);
+        }
+    </script>
+
+</body>
+</html>

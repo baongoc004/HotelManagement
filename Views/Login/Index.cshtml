@@ -1,0 +1,211 @@
+﻿@model TaiKhoan
+@await Html.PartialAsync("header")
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/pictures/hotel1.jpg') no-repeat center center/cover;
+        }
+
+        ::selection {
+            background: #c29d5a;
+            color: #fff;
+        }
+
+        .login-container {
+            max-width: 420px;
+            padding: 40px 35px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            transform: translateY(-90px); /* Đẩy khung lên 30px */
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f6e27a;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-input {
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+            transition: 0.3s;
+        }
+
+            .form-input:focus {
+                border-color: #f6e27a;
+                outline: none;
+            }
+
+            .form-input::placeholder {
+                color: #ccc;
+            }
+
+        .form-button {
+            background: linear-gradient(to right, #c29d5a, #f6e27a);
+            color: #000;
+            padding: 12px 0;
+            font-size: 1rem;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .form-button:hover {
+                background: linear-gradient(to right, #f6e27a, #c29d5a);
+                transform: scale(1.02);
+            }
+
+        .form-links {
+            text-align: center;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .forgot-link,
+        .signup-option a {
+            color: #f6e27a;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+            .forgot-link:hover,
+            .signup-option a:hover {
+                color: #c29d5a;
+                text-decoration: underline;
+            }
+
+        .validation-message {
+            max-width: 420px;
+            margin: 0 auto 10px;
+            color: red;
+            text-align: center;
+        }
+
+        .message-box {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 12px 20px;
+            margin-top: 10px;
+            border-radius: 10px;
+            font-size: 15px;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div asp-validation-summary="All" class="validation-message"></div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2 class="login-title">Đăng nhập</h2>
+        </div>
+
+        <div class="login-form-wrapper">
+            <form class="login-form" method="post">
+                <div class="form-group">
+                    <input type="text" asp-for="UserName" placeholder="Tên đăng nhập" class="form-input" required />
+                </div>
+                <div class="form-group" style="position: relative;">
+                    <input type="password" asp-for="Password" placeholder="Mật khẩu" class="form-input" id="passwordInput" required />
+                    <span id="togglePassword" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; font-size: 1.2rem; color: #f6e27a;">
+                        👀
+                    </span>
+                </div>
+
+                <div class="form-links">
+                    <a href="#" class="forgot-link" onclick="document.getElementById('message-box').style.display='block'; return false;">Quên mật khẩu?</a>
+                </div>
+
+                <div id="message-box" class="message-box">
+                    Vui lòng liên hệ nhân viên để được cấp lại mật khẩu.
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Đăng nhập" class="form-button" />
+                </div>
+                <div class="form-links signup-option">
+                    Chưa có tài khoản? <a asp-controller="Signup" asp-action="Index">Tạo ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+
+            const passwordInput = document.getElementById("passwordInput");
+        const togglePassword = document.getElementById("togglePassword");
+
+        togglePassword.addEventListener("click", function () {
+            const isPassword = passwordInput.type === "password";
+            passwordInput.type = isPassword ? "text" : "password";
+            togglePassword.textContent = isPassword ? "🙈" : "👀"; // Chuyển icon
+        });
+        
+            const loginText = document.querySelector(".title-text .login");
+            const loginForm = document.querySelector("form.login");
+            const loginBtn = document.querySelector("label.login");
+            const signupBtn = document.querySelector("label.signup");
+            const signupLink = document.querySelector("form .signup-link a");
+            signupBtn.onclick = (() => {
+                loginForm.style.marginLeft = "-50%";
+                loginText.style.marginLeft = "-50%";
+            });
+            loginBtn.onclick = (() => {
+                loginForm.style.marginLeft = "0%";
+                loginText.style.marginLeft = "0%";
+            });
+            signupLink.onclick = (() => {
+                signupBtn.click();
+                return false;
+            });
+    </script>
+</body>
+</html>

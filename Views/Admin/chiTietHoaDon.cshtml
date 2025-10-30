@@ -1,0 +1,225 @@
+﻿@model HoaDon
+@* @await Html.PartialAsync("header") *@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết hóa đơn</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            background-color: #d0e4f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #333;
+            margin: 8px 0;
+        }
+
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .col-half {
+            flex: 1 1 48%;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background-color: #f5f5f5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        thead {
+            background-color: #f0f6fb;
+            color: #2c3e50;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #2c3e50;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+            .btn:hover {
+                background-color: #1a242f;
+            }
+
+        .btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chi tiết hóa đơn</h1>
+    <div id="data">
+        @{
+            float tienphong = Model.MaOrderPhongNavigation.MaPhongNavigation.MaLoaiPhongNavigation.GiaPhong;
+            string tenphong = Model.MaOrderPhongNavigation.MaPhongNavigation.TenPhong;
+            DateTime ngayden = Convert.ToDateTime(Model.MaOrderPhongNavigation.NgayDen);
+            DateTime ngaydi = Convert.ToDateTime(Model.MaOrderPhongNavigation.NgayDi);
+            int totalDays = Convert.ToInt32((ngaydi - ngayden).TotalDays);
+            float tongtienphong = totalDays * tienphong;
+        }
+
+        <div class="section">
+            <h2>@tenphong - @String.Format("{0:N0}", tienphong) VND</h2>
+            <div class="row">
+                <div class="col-half">
+                    <h2>Ngày đến: @ngayden.ToString("dd/MM/yyyy")</h2>
+                    <h2>Ngày đi: @ngaydi.ToString("dd/MM/yyyy")</h2>
+                </div>
+                <div class="col-half">
+                    <h2>Số ngày: @totalDays</h2>
+                    <h2>Tổng tiền phòng: @String.Format("{0:N0}", tongtienphong) VND</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-half section">
+                <label>Họ và tên</label>
+                <input disabled value="@Model.MaOrderPhongNavigation.Person.HoTen" />
+
+                <label>Tuổi</label>
+                <input disabled value="@Model.MaOrderPhongNavigation.Person.Tuoi" />
+
+                <label>Giới tính</label>
+                <input disabled value="@(@Model.MaOrderPhongNavigation.Person.GioiTinh == 0 ? "Nam" : "Nữ")" />
+
+                <label>CCCD</label>
+                <input disabled value="@Model.MaOrderPhongNavigation.Person.PersonId" />
+
+                <label>SĐT</label>
+                <input disabled value="@Model.MaOrderPhongNavigation.Person.Sdt" />
+            </div>
+
+            <div class="col-half section">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên dịch vụ</th>
+                            <th>SL</th>
+                            <th>Giá</th>
+                            <th>Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int i = 1;
+                            float tongtiendichvu = 0;
+                            foreach (var dv in Model.MaOrderPhongNavigation.OrderPhongDichVus)
+                            {
+                                float thanhtien = (dv.SoLuong ?? 0) * (dv.DonGia ?? 0);
+                                tongtiendichvu += thanhtien;
+                            }
+                        }
+
+                        @foreach (var dv in Model.MaOrderPhongNavigation.OrderPhongDichVus)
+                        {
+                            <tr>
+                                <td>@(i++)</td>
+                                <td>@dv.MaDichVuNavigation.TenDichVu</td>
+                                <td>@dv.SoLuong</td>
+                                <td>@String.Format("{0:N0}", dv.DonGia)</td>
+                                <td>@String.Format("{0:N0}", dv.SoLuong * dv.DonGia)</td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <th colspan="4" class="text-center">Tổng tiền dịch vụ</th>
+                            <td>@String.Format("{0:N0}", tongtiendichvu)</td>
+                        </tr>
+                        <tr>
+                            <th colspan="4" class="text-center">Tổng tiền phòng</th>
+                            <td>@String.Format("{0:N0}", tongtienphong)</td>
+                        </tr>
+                        <tr>
+                            <th colspan="4" class="text-center">Tổng cộng</th>
+                            @{
+                                float tongtientatca = tongtiendichvu + tongtienphong;
+                            }
+                            <td>@String.Format("{0:N0}", tongtientatca)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-container">
+                    <button class="btn" onclick="inHoaDon()">In hóa đơn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function inHoaDon() {
+            var data = document.getElementById('data');
+            var dataBackUp = data.innerHTML;
+            var toRemove = data.querySelectorAll('.btn-container');
+            toRemove.forEach(div => div.remove());
+            window.print();
+            document.getElementById('data').innerHTML = dataBackUp;
+        }
+    </script>
+</body>
+</html>

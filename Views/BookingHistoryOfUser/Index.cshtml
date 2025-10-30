@@ -1,0 +1,185 @@
+﻿@model IEnumerable<OrderPhong>
+@await Html.PartialAsync("header")
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách đặt phòng</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            background-color: #d0e4f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+            color: #333;
+        }
+
+        thead {
+            background-color: #f0f6fb;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+
+            .btn-danger:hover {
+                background-color: #c0392b;
+            }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-dialog {
+            position: relative;
+            margin: 10% auto;
+            max-width: 400px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Danh sách đặt phòng</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Phòng</th>
+                <th>Ngày đến</th>
+                <th>Ngày đi</th>
+                <th>Hủy</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int i = 1;
+                foreach (var order in Model)
+                {
+                    var modalId = "modal_" + order.MaOrderPhong;
+                }
+            }
+
+            @foreach (var order in Model)
+            {
+                var modalId = "modal_" + order.MaOrderPhong;
+                <tr>
+                    <td>@(i++)</td>
+                    <td>@order.MaPhongNavigation.TenPhong</td>
+                    <td>@order.NgayDen?.ToString("dd/MM/yyyy")</td>
+                    <td>@order.NgayDi?.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('@modalId').style.display='block'">Hủy</button>
+
+                        <!-- Modal -->
+                        <div class="modal" id="@modalId">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <span>Hủy phòng</span>
+                                        <button class="btn-close" onclick="document.getElementById('@modalId').style.display='none'">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bạn có muốn hủy đặt phòng này không?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-danger" asp-action="removeOrder" asp-route-maorder="@order.MaOrderPhong" asp-route-maphong="@order.MaPhong">Xác nhận</a>
+                                        <button class="btn btn-primary" onclick="document.getElementById('@modalId').style.display='none'">Hủy</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</body>
+</html>

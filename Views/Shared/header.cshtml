@@ -1,0 +1,241 @@
+﻿@inject IHttpContextAccessor accessor
+
+<style>
+    :root {
+        --primary-color: #2f3e46;
+        --secondary-color: #52796f;
+        --light-bg: #f0f4f8;
+        --hover-bg: #d9e4dd;
+        --text-color: #1c1c1c;
+    }
+
+    header {
+        background: linear-gradient(to right, var(--light-bg), #dce3ea);
+        border-bottom: 2px solid #b0bec5;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 32px;
+        flex-wrap: wrap;
+    }
+
+    .brand {
+        font-size: 28px;
+        font-weight: bold;
+        color: var(--primary-color);
+        text-decoration: none;
+        letter-spacing: 1px;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .nav-link {
+        text-decoration: none;
+        color: var(--primary-color);
+        font-size: 17px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+        .nav-link:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-color);
+        }
+
+    .dropdown {
+        position: relative;
+    }
+
+    .dropdown-button {
+        background-color: transparent;
+        border: none;
+        font-size: 17px;
+        color: var(--secondary-color);
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+    }
+
+        .dropdown-button:hover {
+            background-color: #e6f0ea;
+        }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #cfd8dc;
+        border-radius: 8px;
+        padding: 10px 0;
+        min-width: 220px;
+        top: 110%;
+        left: 0;
+        z-index: 1000;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .dropdown:hover .dropdown-menu {
+        display: block;
+    }
+
+    .dropdown-menu .nav-item {
+        padding: 6px 20px;
+    }
+
+    .dropdown-menu .nav-link {
+        color: var(--primary-color);
+        display: block;
+        width: 100%;
+    }
+
+        .dropdown-menu .nav-link:hover {
+            background-color: var(--hover-bg);
+            border-radius: 4px;
+        }
+
+    .auth-section {
+        display: flex;
+        gap: 28px;
+        align-items: center;
+    }
+
+    .username {
+        font-weight: 500;
+        color: var(--primary-color);
+        font-size: 16px;
+    }
+
+    .auth-section .nav-link {
+        padding: 8px 12px;
+        border-radius: 6px;
+    }
+
+        .auth-section .nav-link:hover {
+            background-color: #e0e0e0;
+            color: var(--text-color);
+        }
+
+    @@media (max-width: 768px) {
+        nav
+
+    {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .auth-section {
+        flex-direction: column;
+        gap: 14px;
+        width: 100%;
+        margin-top: 14px;
+    }
+
+    .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+    }
+
+    }</style>
+
+<header>
+    <nav>
+        <a href="#" class="brand">CanTho Hotel</a>
+
+        <div class="nav-links">
+            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+            <a class="nav-link" asp-controller="Room" asp-action="Index">Rooms</a>
+
+            @{
+                if (accessor.HttpContext.Session.GetString("admin") != null)
+                {
+                    <div class="dropdown">
+                        <button class="dropdown-button">Các mục quản lý</button>
+                        <div class="dropdown-menu">
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLPhong">Quản lý phòng</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLDichVu">Quản lý dịch vụ</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLHoaDon">Quản lý hóa đơn</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLUser">Quản lý khách hàng</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLNhanVien">Quản lý nhân viên</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLTaiKhoan">Quản lý tài khoản</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (accessor.HttpContext.Session.GetString("nhanvien") != null)
+                {
+                    <div class="dropdown">
+                        <button class="dropdown-button">Các mục quản lý</button>
+                        <div class="dropdown-menu">
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLPhong">Quản lý phòng</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLDichVu">Quản lý dịch vụ</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLHoaDon">Quản lý hóa đơn</a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="QLUser">Quản lý khách hàng</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (accessor.HttpContext.Session.GetString("UserName") != null)
+                {
+                    <a class="nav-link" asp-controller="BookingHistoryOfUser" asp-action="Index">Phòng đã đặt trước</a>
+                }
+            }
+        </div>
+
+        <div class="auth-section">
+            <ul style="display: flex; list-style: none; margin: 0; padding: 0;">
+                @{
+                    if (accessor.HttpContext.Session.GetString("UserName") == null
+                    && accessor.HttpContext.Session.GetString("admin") == null
+                    && accessor.HttpContext.Session.GetString("nhanvien") == null)
+                    {
+                        <li><a class="nav-link" href="/login/index">Đăng nhập</a></li>
+                        <li><a class="nav-link" href="/signup/index">Đăng kí</a></li>
+                    }
+                    else
+                    {
+                        <li class="username">@accessor.HttpContext.Session.GetString("UserName")</li>
+                        <li><a class="nav-link" asp-controller="Login" asp-action="Logout">Logout</a></li>
+                    }
+                }
+            </ul>
+        </div>
+    </nav>
+</header>
